@@ -3,20 +3,6 @@
 # Getting Data: Course Project
 # 
 
-# You will be required to submit: 
-#  1) a tidy data set as described below, 
-# 
-#  2) a link to a Github repository with your script for 
-#     performing the analysis, and 
-# 
-#  3) a code book that describes the variables, the data, 
-#     and any transformations or work that you performed to 
-#     clean up the data called CodeBook.md. You should also 
-#     include a README.md in the repo with your scripts. This 
-#     repo explains how all of the scripts work and how they 
-#     are connected.  
-# 
-
 # You should create one R script called run_analysis.R that does 
 # the following: 
 # 1. Merges the training and the test sets to create one data set. 
@@ -33,15 +19,13 @@
 # Good luck!
 
 
-# In order to simplify this procedure I have written it as a script
-#  and not a set of functions. As such, the script is meant to be 
-#  executed from a directory that includes the 'UCI HAR Dataset' 
-#  folder, unzipped, in its entirety. 
+# The script expects to be executed from a directory that includes 
+#  the 'UCI HAR Dataset' folder, unzipped, in its entirety. 
 
-# Each file within the test directory contains a set of 2946 data.
-#  First I will combine all the individual measurements into a 
-#  data frame, one each for 'train' and 'test', so that effort is 
-#  not duplicated. Then I will append one to the end of the other. 
+# Each file within the test directory contains a dataset. First I 
+#  will combine all the individual measurements into a data frame, 
+#  one each for 'train' and 'test', so that no effort is duplicated.
+#  Then I will append one data frame to the end of the other. 
 
 stripName <- function(str, sub){
     # Strip the descriptor of a measurement from the filename
@@ -57,7 +41,7 @@ stripName <- function(str, sub){
     # And now strip the '_test' etc to normalise names
     str <- gsub(paste('_', sub, sep=''), '', str)
 
-    str
+    return(str)
 }
 
 makeDF <- function(dir){
@@ -66,31 +50,27 @@ makeDF <- function(dir){
     # Scan directory
     listing <- list.files(dir, full.names = TRUE)
 
-    # Initialise a data frame with a running index
-    nData <- dim(read.csv(listing[2]))[1]
-    df <- data.frame(index = 1:nData)
+    # Initialise a data frame via 'subject_test'
+    #nData <- dim(read.csv(listing[2]))[1]
+    #df <- data.frame(index = 1:nData)
+    print(paste('Adding contents of', listing[2]))
+    df <- read.table(listing[2], header=FALSE)
     
-    # Loop over all files, ignoring directory at top of 'listing'
-    for(i in 2:length(listing)){
+    # Column-bind each file (dataset). Peculiarities do not loop. 
+    #df <- cbind(df,read.csv(listing[2], header=FALSE))
 
-        # Column-bind each file (dataset)
-        print(paste('Adding contents of', listing[i]))
-        df <- cbind(df, read.csv(listing[i]))
-        
-        # Name each variable after the filename; remove test/train
+    print(paste('Adding contents of', listing[4]))
+    df <- cbind(df,read.table(listing[4], header=FALSE))
+
+    print(dim(df))
+    
+    print(paste('Adding contents of', listing[3]))
+    df <- cbind(df,read.csv(listing[3], sep='  ', header=FALSE))        
+    
+    # Loop and name each variable after the filename
+    for(i in 2:length(listing)){
         names(df)[i] <- stripName(listing[i], dir)
     }
-    # Now stop ignoring that directory and get into it
-    # *** Following the instruction on the community forum I am 
-    #     not including the 'Inertial' folder. Commented out. 
-#     count <- i
-#     for(j in list.files(listing[1], full.names = TRUE)){
-#         # Increment counter seeing as 'j' is str for convenience
-#         count = count + 1
-#         print(paste('Adding contents of', j))
-#         df <- cbind(df, read.csv(j))
-#         names(df)[count] <- stripName(j, dir)
-#     }
     return(df)
 }
 
@@ -99,6 +79,41 @@ test <- makeDF('test')
 train <- makeDF('train')
 
 # And tack one data frame onto the end of the other
-# *** This fulfils steps [1], [3], and [4] of the project ***
 allData <- rbind(test, train)
+
+# Finally, give the data frame some descriptive column names
+names(allData)[3] <- "measurement"
+names(allData)[4] <- "activity_code"
+
+# *** The above fulfils steps [1] through [4] of the project ***
+
+# For step [5] let's filter the data by activity and then subject
+library(dplyr)
+
+#newData <- arrange(allData, allData$activity_code, allData$subject)
+nActivities <- unique(allData$activity_code)
+averages <- data.frame(activity = unique(allData$activity_code))
+
+# a <- filter(allData, activity_code==1)
+# b <- a$measurement
+
+# Loop over the distinct set of activities (integer-coded)
+# for(i in 1:nActivities){
+#     # dplyr-Filter and get averages
+#     #averages <- 
+# }
+
+# Loop over the distinct set of subjects (also integer-coded)
+
+# Then save those to new df
+
+
+
+
+
+#setwd('~/Documents/Coursera/getData/CourseProject/UCI HAR Dataset/')
+
+
+
+
 
