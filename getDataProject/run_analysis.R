@@ -3,22 +3,6 @@
 # Getting Data: Course Project
 # 
 
-# You should create one R script called run_analysis.R that does 
-# the following: 
-# 1. Merges the training and the test sets to create one data set. 
-# 2. Extracts only the measurements on the mean and standard 
-#    deviation for each measurement. 
-# 3. Uses descriptive activity names to name the activities in the 
-#    data set. 
-# 4. Appropriately labels the data set with descriptive variable 
-#    names. 
-# 5. From the data set in step 4, creates a second, independent 
-#    tidy data set with the average of each variable for each 
-#    activity and each subject.
-# 
-# Good luck!
-
-
 # The script expects to be executed from a directory that includes 
 #  the 'UCI HAR Dataset' folder, unzipped, in its entirety. 
 
@@ -61,35 +45,39 @@ train <- makeDF('train')
 # And tack one data frame onto the end of the other
 allData <- rbind(test, train)
 
+# Now replace the activity codes with descriptive names
+actNames <- read.csv('activity_labels.txt', as.is=TRUE, 
+                     sep=' ', header=FALSE)
+for(i in actNames$V1){
+     allData$activity[allData$activity==i] <- actNames$V2[i]
+}
+
 # *** The above fulfils steps [1] through [4] of the project ***
 
 # For step [5] let's filter the data by activity and then subject
 library(dplyr)
 
-#newData <- arrange(allData, allData$activity_code, allData$subject)
-# nActivities <- unique(allData$activity_code)
-# averages <- data.frame(activity = unique(allData$activity_code))
-
-# a <- filter(allData, activity_code==1)
-# b <- a$measurement
-
 # Loop over the distinct set of activities (integer-coded)
-# for(i in 1:nActivities){
-#     # dplyr-Filter and get averages
-#     #averages <- 
-# }
+nActivities <- length(unique(allData$activity))
+byActivity <- numeric(nActivities)
+
+for(i in 1:nActivities){
+    # dplyr-Filter and get averages
+    byActivity[i] <- mean(filter(allData, activity==i)$mean)
+}
 
 # Loop over the distinct set of subjects (also integer-coded)
+nSubjects <- length(unique(allData$subject))
+bySubject <- numeric(nSubjects)
 
-# Then save those to new df
+for(i in 1:nSubjects){
+    # dplyr-Filter and get averages
+    bySubject[i] <- mean(filter(allData, subject==i)$mean)
+}
 
+# Create a new data frame
+df2 <- data.frame(meanBySubject = bySubject, 
+                  meanByActivity = byActivity)
 
-
-
-
-#setwd('~/Documents/Coursera/getData/CourseProject/UCI HAR Dataset/')
-
-
-
-
-
+# And pad the activity with NA past 6 to wrap this up
+df2$meanByActivity[7:dim(df2)[1]] <- NA
