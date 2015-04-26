@@ -45,15 +45,6 @@ train <- makeDF('train')
 # And tack one data frame onto the end of the other
 allData <- rbind(test, train)
 
-# Now replace the activity codes with descriptive names
-actNames <- read.csv('activity_labels.txt', as.is=TRUE, 
-                     sep=' ', header=FALSE)
-for(i in actNames$V1){
-     allData$activity[allData$activity==i] <- actNames$V2[i]
-}
-
-# *** The above fulfils steps [1] through [4] of the project ***
-
 # For step [5] let's filter the data by activity and then subject
 library(dplyr)
 
@@ -61,18 +52,26 @@ library(dplyr)
 nActivities <- length(unique(allData$activity))
 byActivity <- numeric(nActivities)
 
-for(i in 1:nActivities){
+for(j in 1:nActivities){
     # dplyr-Filter and get averages
-    byActivity[i] <- mean(filter(allData, activity==i)$mean)
+    byActivity[j] <- mean(filter(allData, activity==j)$mean)
+}
+
+# Now that activiry codes are no longer required, replace them 
+# with descriptive names
+actNames <- read.csv('activity_labels.txt', as.is=TRUE, 
+                     sep=' ', header=FALSE)
+for(i in actNames$V1){
+    allData$activity[allData$activity==i] <- actNames$V2[i]
 }
 
 # Loop over the distinct set of subjects (also integer-coded)
 nSubjects <- length(unique(allData$subject))
 bySubject <- numeric(nSubjects)
 
-for(i in 1:nSubjects){
+for(k in 1:nSubjects){
     # dplyr-Filter and get averages
-    bySubject[i] <- mean(filter(allData, subject==i)$mean)
+    bySubject[k] <- mean(filter(allData, subject==k)$mean)
 }
 
 # Create a new data frame
