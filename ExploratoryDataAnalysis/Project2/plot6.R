@@ -7,8 +7,10 @@
 
 # Question 5
 # ----------
-# How have emissions from motor vehicle sources changed from 
-# 1999–2008 in Baltimore City?
+# Compare emissions from motor vehicle sources in Baltimore City with 
+# emissions from motor vehicle sources in Los Angeles County, California
+# (fips == "06037"). Which city has seen greater changes over time in 
+# motor vehicle emissions?
 
 library(dplyr)
 
@@ -18,24 +20,27 @@ SCC <- readRDS("Source_Classification_Code.rds")
 years <- summarise(group_by(pm25, year))$year
 
 # Consider only on-road sources. 
-df <- filter(pm25, type=="ON-ROAD" & fips=="24510")
+baltimore <- filter(pm25, type=="ON-ROAD" & fips=="24510")
+losangeles <- filter(pm25, type=="ON-ROAD" & fips=="06037")
 
 # Get the average by year
-emissions = numeric(4)
+BM = numeric(4)
+LA = numeric(4)
 counter <- 0
 for(yr in years){
     counter = counter + 1
-    emissions[counter] <- sum(df$Emissions[df$year==yr])
+    BM[counter] <- sum(baltimore$Emissions[baltimore$year==yr])
+    LA[counter] <- sum(losangeles$Emissions[losangeles$year==yr])
 }
 
 # Combine all into a single data.frame for ggplot and melt
-df <- data.frame(years, emissions)
+df <- data.frame(years, Baltimore=BM, LA)
 df <- melt(df ,  id = 'years', variable_name = 'MotorVehicles')
 
 # Plot the time series
-png(file = 'plot5.png')
+png(file = 'plot6.png')
 p <- ggplot(df, aes(years,log10(value)))
 p + geom_line(aes(colour = MotorVehicles)) + 
-    labs(title="Time series of vehicle-related emissions in Baltimore")+
+    labs(title="Time series of vehicle-related emissions")+
     xlab("Year") + ylab("log(Total Emissions)")
 dev.off()
