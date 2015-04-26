@@ -5,10 +5,44 @@ date: "26 April 2015"
 output: html_document
 ---
 
+##Introduction
+
 This document presents an analysis of storm data from the National Oceanic and Atmospheric Administration (NOAA) storm database. The desired outcome is to determine the types of events that cause most measurable harm and appreciable financial damage across the United States. It makes use of public NOAA data. 
 
+## Data Preparation
 
+The original NOAA dataset was obtained from: 
 
-```{r, echo=FALSE}
-plot(cars)
+    https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2
+
+and the file was unzipped using the native Mac OS archive utility. The unzipped CSV file should be linked to the working directory for the code segments in this document to execute afresh. 
+
+A summarry of the CSV file is as follows: 
+
+```{r}
+library(dplyr)
+df <- read.csv("StormData.csv")
+str(df)
 ```
+
+A full list of events is held in the `EVTYPE` factor. There are too many to list in a sensible format. Specifically: 
+
+```{r}
+paste("Events are divided into", length(unique(df$EVTYPE)), "categories.")
+```
+
+There are two tracers of damage, property damage (`PROPDMG`) and crop damage (`CROPDMG`). In order to assess damage the two tracers are combined into a new column, `TotalDamage`: 
+
+```{r}
+df <- mutate(df, TotalDamage = PROPDMG + CROPDMG)
+str(df$TotalDamage)
+#df <- arrange(df, TotalDamage)
+```
+
+## Data Analysis
+Having prepared our dataset by adding a column for economic damage, we are ready to assess the impact of the storms in the database. 
+
+### Impact on Health
+First we treat the human element. We sort the database by 
+
+## Results
