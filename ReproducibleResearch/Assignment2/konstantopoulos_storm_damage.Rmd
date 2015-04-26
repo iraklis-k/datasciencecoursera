@@ -17,7 +17,7 @@ and the file was unzipped using the native Mac OS archive utility. The unzipped 
 
 A summarry of the CSV file is as follows: 
 
-```{r}{cache=TRUE}
+```{r}
 library(dplyr)
 df <- read.csv("StormData.csv")
 str(df)
@@ -35,7 +35,8 @@ This listing was saved to a variable as it will come in handy later.
 There are two tracers of damage, property damage (`PROPDMG`) and crop damage (`CROPDMG`). In order to assess damage the two tracers are combined into a new column, `TotalDamage`: 
 
 ```{r}
-df <- mutate(df, TotalDamage = PROPDMG + CROPDMG)
+# Cannot use dplyr with knit, so go with base operations
+df <- cbind(df, TotalDamage = df$PROPDMG + df$CROPDMG)
 str(df$TotalDamage)
 ```
 
@@ -43,28 +44,21 @@ str(df$TotalDamage)
 Having prepared our dataset by adding a column for economic damage, we are ready to assess the human and material impact of the storms in the database. 
 
 ### Impact on Health
-First we treat the human element. There are two relevant tracers, injuries (`INJURIES`) and fatalities (`FATALITIES`) but we did not combine these are they are appreciably distinct events. 
-
-The types of events that caused the most injuries and the highest death toll are the following: 
+First we treat the human element. There are two relevant tracers, injuries (`INJURIES`) and fatalities (`FATALITIES`) but we did not combine these are they are appreciably distinct events. In order to classify the types of events we will produce an index counting the mean number of injuries and fatalities by event type. We will then bind these results into a new data frame entitled `damage`. 
 
 ```{r}
-topInjury <- df$EVTYPE[which.max(df$INJURIES)]
-topFatality <- df$EVTYPE[which.max(df$FATALITIES)]
+meanInjuries <- numeric(length(eventType))
+meanFatalities <- numeric(length(eventType))
 
-paste("The event that caused the most injuries was a", topInjury, "'")
-paste("The event with the higest death toll is classified as", topFatality)
-```
+counter <- 0
+for(ev in eventType){
+    counter = counter + 1
+    meanInjuries[counter] <- mean(df$INJURIES[which(df$EVTYPE == ev)])
+    meanFatalities[counter] <- mean(df$FATALITIES[which(df$EVTYPE == ev)])
+}
 
-The 'tornado' designation is clear, while 'heat' is less so. On p.43 of the [accompanying documentation](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf) an event of type 'heat' is described as: 
-
-> A period of heat resulting from the
-> combination of high temperatures (above
-> normal) and relative humidity. 
-
-In other words, a prolonged heat wave is the single worst event archived in the NOAA database. It occurred in Illinois in July of 1961: 
-
-```{r}
-df$STATE[topFatality]; df$BGN_DATE[topFatality]
+damage <- data.frame(cbind(eventType, meanInjuries, 
+                    meanFatalities), stringsAsFactors = FALSE)
 ```
 
 ### Impact on Property and Crops
@@ -81,15 +75,31 @@ for(ev in eventType){
 }
 ```
 
-To aid presentation and data lookup we have saved this listing of mean damage along with the descriptive name of the event in a new data frame, which we then sorted by damage. 
+And add the data to the damage dataframe: 
 
 ```{r}
-damage <- data.frame(cbind(eventType, meanDamage), stringsAsFactors = FALSE)
-damage <- arrange(damage, desc(meanDamage))
-
-print("The ten most damaging types of events are")
-head(eventType[damage$eventType], n=10)
+damage <- cbind(damage, meanDamage)
 ```
 
-
 ## Results
+The statitical study presented in this work was aimed at understanding which types of events have the highest impact, in terms of
+
+1. Human injury and loss, and
+1. Destruction of property and crops. 
+
+In order to draw conclusions we simply need to order the newly created `damage` dataset by the relevant column. Note that the results list the *average* impact of any type of event. The cumulative toll of *individual* events will classify events differently. 
+
+```{r}
+# By Injury: 
+damage <- arrange(damage, desc(meanInjuries))
+print("The types of events that produce the most injuries are:")
+head(eventType[damage$eventType], n=10)
+# By Fatality: 
+damage <- arrange(damage, desc(meanFatalities))
+print("The types of events with the highestdeath toll are:")
+head(eventType[damage$eventType], n=10)
+# By Total Damage: 
+damage <- arrange(damage, desc(meanDamage))
+print("The ten most damaging types of events are:")
+head(eventType[damage$eventType], n=10)
+```
