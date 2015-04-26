@@ -81,3 +81,7 @@ df2 <- data.frame(meanBySubject = bySubject,
 
 # And pad the activity with NA past 6 to wrap this up
 df2$meanByActivity[7:dim(df2)[1]] <- NA
+
+# Finally, output the dataset
+fname <- "~/Progs/datasciencecoursera/getDataProject/dset.txt"
+write.table(df2, file=fname, row.name=FALSE)

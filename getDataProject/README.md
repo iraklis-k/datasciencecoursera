@@ -1,6 +1,6 @@
-# JHU/Coursera Data Specialisation track
+# JHU/Coursera Data Specialisation track: Getting Data
 
-## Getting Data, Course Project
+## Course Project
 
 In carrying out this assigment I have avoided tampering with the data. To accomplish that I have taken a few extra steps to clean data during or following input. 
 
@@ -28,3 +28,10 @@ The final step in the process is to create a new dataset containing averages by 
 The code can be found on my [coursera data science](https://github.com/iraklis-k/datasciencecoursera) github repository, under the gettingDataProject directory. The tip of the master  branch can be found at: 
 
     https://github.com/iraklis-k/datasciencecoursera/tree/master/getDataProject
+
+There are four files that make up this assignment: 
+
+1. The code file, `run_analysis.R`; 
+1. The output dataset, `dset.txt`; 
+1. The code book, `CodeBook.md`; and 
+1. This README file.
