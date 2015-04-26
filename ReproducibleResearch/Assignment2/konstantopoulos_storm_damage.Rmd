@@ -1,0 +1,14 @@
+---
+title: 'Coursera Data Science: Reproducible Reaserch: Assignment 2'
+author: "Iraklis Konstantopoulos"
+date: "26 April 2015"
+output: html_document
+---
+
+This document presents an analysis of storm data from the National Oceanic and Atmospheric Administration (NOAA) storm database. The desired outcome is to determine the types of events that cause most measurable harm and appreciable financial damage across the United States. It makes use of public NOAA data. 
+
+
+
+```{r, echo=FALSE}
+plot(cars)
+```
