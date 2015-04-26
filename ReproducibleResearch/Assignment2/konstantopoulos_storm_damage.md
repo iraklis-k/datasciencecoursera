@@ -23,58 +23,54 @@ library(dplyr)
 ##     intersect, setdiff, setequal, union
 ```
 
-```r
-library(RCurl)
-```
-
-```
-## Warning: package 'RCurl' was built under R version 3.1.3
-```
-
-```
-## Loading required package: bitops
-```
-
 ## Data Preparation
 The original NOAA dataset can be found online and read directly through a combination of `read.csv()` and `bzfile()`. To keep the process simple the following code instead expects to find (a link to) the b-zipped file in the working directory. 
 
 
 ```r
 df <- read.csv("StormData.csv.bz2")
-```
-
-```
-## Warning in read.table(file = file, header = header, sep = sep, quote =
-## quote, : line 1 appears to contain embedded nulls
-```
-
-```
-## Warning in read.table(file = file, header = header, sep = sep, quote =
-## quote, : line 2 appears to contain embedded nulls
-```
-
-```
-## Warning in read.table(file = file, header = header, sep = sep, quote =
-## quote, : line 3 appears to contain embedded nulls
-```
-
-```
-## Warning in read.table(file = file, header = header, sep = sep, quote =
-## quote, : line 5 appears to contain embedded nulls
-```
-
-```
-## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec =
-## dec, : embedded nul(s) found in input
-```
-
-```r
 str(df)
 ```
 
 ```
-## 'data.frame':	1629 obs. of  1 variable:
-##  $ book: Factor w/ 1583 levels "\024\b\003\001",..: 1093 2 1301 1149 397 26 24 280 610 7 ...
+## 'data.frame':	902297 obs. of  37 variables:
+##  $ STATE__   : num  1 1 1 1 1 1 1 1 1 1 ...
+##  $ BGN_DATE  : Factor w/ 16335 levels "1/1/1966 0:00:00",..: 6523 6523 4242 11116 2224 2224 2260 383 3980 3980 ...
+##  $ BGN_TIME  : Factor w/ 3608 levels "00:00:00 AM",..: 272 287 2705 1683 2584 3186 242 1683 3186 3186 ...
+##  $ TIME_ZONE : Factor w/ 22 levels "ADT","AKS","AST",..: 7 7 7 7 7 7 7 7 7 7 ...
+##  $ COUNTY    : num  97 3 57 89 43 77 9 123 125 57 ...
+##  $ COUNTYNAME: Factor w/ 29601 levels "","5NM E OF MACKINAC BRIDGE TO PRESQUE ISLE LT MI",..: 13513 1873 4598 10592 4372 10094 1973 23873 24418 4598 ...
+##  $ STATE     : Factor w/ 72 levels "AK","AL","AM",..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ EVTYPE    : Factor w/ 985 levels "   HIGH SURF ADVISORY",..: 834 834 834 834 834 834 834 834 834 834 ...
+##  $ BGN_RANGE : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ BGN_AZI   : Factor w/ 35 levels "","  N"," NW",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ BGN_LOCATI: Factor w/ 54429 levels ""," Christiansburg",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ END_DATE  : Factor w/ 6663 levels "","1/1/1993 0:00:00",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ END_TIME  : Factor w/ 3647 levels ""," 0900CST",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ COUNTY_END: num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ COUNTYENDN: logi  NA NA NA NA NA NA ...
+##  $ END_RANGE : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ END_AZI   : Factor w/ 24 levels "","E","ENE","ESE",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ END_LOCATI: Factor w/ 34506 levels ""," CANTON"," TULIA",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ LENGTH    : num  14 2 0.1 0 0 1.5 1.5 0 3.3 2.3 ...
+##  $ WIDTH     : num  100 150 123 100 150 177 33 33 100 100 ...
+##  $ F         : int  3 2 2 2 2 2 2 1 3 3 ...
+##  $ MAG       : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ FATALITIES: num  0 0 0 0 0 0 0 0 1 0 ...
+##  $ INJURIES  : num  15 0 2 2 2 6 1 0 14 0 ...
+##  $ PROPDMG   : num  25 2.5 25 2.5 2.5 2.5 2.5 2.5 25 25 ...
+##  $ PROPDMGEXP: Factor w/ 19 levels "","-","?","+",..: 17 17 17 17 17 17 17 17 17 17 ...
+##  $ CROPDMG   : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ CROPDMGEXP: Factor w/ 9 levels "","?","0","2",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ WFO       : Factor w/ 542 levels ""," CI","%SD",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ STATEOFFIC: Factor w/ 250 levels "","ALABAMA, Central",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ ZONENAMES : Factor w/ 25112 levels "","                                                                                                                               "| __truncated__,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ LATITUDE  : num  3040 3042 3340 3458 3412 ...
+##  $ LONGITUDE : num  8812 8755 8742 8626 8642 ...
+##  $ LATITUDE_E: num  3051 0 0 0 0 ...
+##  $ LONGITUDE_: num  8806 0 0 0 0 ...
+##  $ REMARKS   : Factor w/ 436781 levels "","\t","\t\t",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ REFNUM    : num  1 2 3 4 5 6 7 8 9 10 ...
 ```
 
 A full list of events is held in the `EVTYPE` factor. There are too many to list in a sensible format. Specifically: 
@@ -86,7 +82,7 @@ paste("Events are divided into", length(eventType), "categories.")
 ```
 
 ```
-## [1] "Events are divided into 0 categories."
+## [1] "Events are divided into 985 categories."
 ```
 
 This listing was saved to a variable as it will come in handy later. 
@@ -95,10 +91,12 @@ There are two tracers of damage, property damage (`PROPDMG`) and crop damage (`C
 
 
 ```r
-# knitr chokes on dplyr, so go with base operations
-#df <- mutate(df, TotalDamage = PROPDMG + CROPDMG)
-#df <- cbind(df, TotalDamage = df$PROPDMG + df$CROPDMG)
-#str(df$TotalDamage)
+df <- mutate(df, TotalDamage = PROPDMG + CROPDMG)
+str(df$TotalDamage)
+```
+
+```
+##  num [1:902297] 25 2.5 25 2.5 2.5 2.5 2.5 2.5 25 25 ...
 ```
 
 ## Data Analysis
@@ -169,7 +167,11 @@ head(eventType[damage$eventType], n=10)
 ```
 
 ```
-## NULL
+##  [1] THUNDERSTORM WINDS 2  TSTM WIND (G45)     HEAVY RAIN EFFECTS  
+##  [4] Gusty winds          AVALANCE             TIDAL FLOODING      
+##  [7] HURRICANE/TYPHOON    SMALL HAIL           ICE/SNOW            
+## [10] LIGHT SNOW          
+## 985 Levels:    HIGH SURF ADVISORY  COASTAL FLOOD ... WND
 ```
 
 ```r
@@ -187,7 +189,12 @@ head(eventType[damage$eventType], n=10)
 ```
 
 ```
-## NULL
+##  [1]  LIGHTNING                    LOW TEMPERATURE RECORD       
+##  [3]  TSTM WIND (G45)              HEAVY SHOWERS                
+##  [5] ICE                           ICE/SNOW                     
+##  [7] THUNDERSTORM WINDS.           HEAVY SNOW/BLIZZARD/AVALANCHE
+##  [9] STORM SURGE/TIDE              AVALANCE                     
+## 985 Levels:    HIGH SURF ADVISORY  COASTAL FLOOD ... WND
 ```
 
 ```r
@@ -205,5 +212,35 @@ head(eventType[damage$eventType], n=10)
 ```
 
 ```
-## NULL
+##  [1]  TSTM WIND (G45)               RIVER FLOOD                   
+##  [3] URBAN FLOOD LANDSLIDE          SNOW AND ICE                  
+##  [5] HURRICANE GORDON               HIGH WINDS DUST STORM         
+##  [7] THUNDERSTORM WINDS/FLASH FLOOD EXTREME/RECORD COLD           
+##  [9] THUNDERSTORM WINDS.            FIRST SNOW                    
+## 985 Levels:    HIGH SURF ADVISORY  COASTAL FLOOD ... WND
 ```
+
+### Distribution by Region
+One area of interest is the differing economic impact of inclement weather across the United States. The following analysis examines the cumulative cost of the storms recorded in this dataset by State. There is no specific focus on states or regions, instead the plot is meant accentuate the range, so no effort has been made to plot all state labels.
+
+
+```r
+counter <- 0
+allStates <- unique(df$STATE)
+damageByState <- numeric(length(allStates))
+for(st in allStates){
+    counter = counter + 1
+    damageByState[counter] <- sum(df$TotalDamage[which(df$STATE==st)])
+}
+```
+
+This new dataset will now be sorted by impact and then plotted as a bar plot for each state in the dataset. 
+
+
+```r
+byState <- data.frame(state = allStates, damage = damageByState)
+byState <- arrange(byState, desc(damage))
+barplot(byState$damage, horiz=TRUE, ylab='', xlab='Cumulative Storm Damage by State in Thousands of Dollars')
+```
+
+![](konstantopoulos_storm_damage_files/figure-html/unnamed-chunk-10-1.png) 

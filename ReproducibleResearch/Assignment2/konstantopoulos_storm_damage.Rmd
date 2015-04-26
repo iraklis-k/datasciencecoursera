@@ -17,7 +17,7 @@ library(dplyr)
 ## Data Preparation
 The original NOAA dataset can be found online and read directly through a combination of `read.csv()` and `bzfile()`. To keep the process simple the following code instead expects to find (a link to) the b-zipped file in the working directory. 
 
-```{r, cache=TRUE}
+```{r}
 df <- read.csv("StormData.csv.bz2")
 str(df)
 ```
@@ -100,4 +100,25 @@ head(eventType[damage$eventType], n=10)
 damage <- arrange(damage, desc(meanDamage))
 print("The ten most damaging types of events are:")
 head(eventType[damage$eventType], n=10)
+```
+
+### Distribution by Region
+One area of interest is the differing economic impact of inclement weather across the United States. The following analysis examines the cumulative cost of the storms recorded in this dataset by State. There is no specific focus on states or regions, instead the plot is meant accentuate the range, so no effort has been made to plot all state labels.
+
+```{r}
+counter <- 0
+allStates <- unique(df$STATE)
+damageByState <- numeric(length(allStates))
+for(st in allStates){
+    counter = counter + 1
+    damageByState[counter] <- sum(df$TotalDamage[which(df$STATE==st)])
+}
+```
+
+This new dataset will now be sorted by impact and then plotted as a bar plot for each state in the dataset. 
+
+```{r}
+byState <- data.frame(state = allStates, damage = damageByState)
+byState <- arrange(byState, desc(damage))
+barplot(byState$damage, horiz=TRUE, ylab='', xlab='Cumulative Storm Damage by State in Thousands of Dollars')
 ```
