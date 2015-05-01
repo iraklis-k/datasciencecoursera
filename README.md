@@ -1,6 +1,6 @@
 # Coursera/JHU Data Science Track
 
-### Iraklis Konstatopoulos
+### Iraklis Konstantopoulos
 
 This repository holds materials for the JHU/Coursera course in Data Science. So far (1 May 2015) I have completed the following modules: 
 
@@ -10,3 +10,4 @@ This repository holds materials for the JHU/Coursera course in Data Science. So 
 4. Exploratory Data Analysis
 5. Reproducible Research
 
+Each folder contains assignment materials and course notes. 
