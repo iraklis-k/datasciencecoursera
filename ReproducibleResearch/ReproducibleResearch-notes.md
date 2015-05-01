@@ -1,0 +1,91 @@
+# Reproducible Research
+
+- How does one define a question? 
+   - What are the quantitative characteristics of my system? 
+   - Define the data set
+- When getting data from the web record URL and date. 
+- Predict SPAM: 
+   - Split into test set and training set
+- Once done, always challenge all steps: 
+   - Question, data source, processing, analysis, conclusions, 
+   - Also uncertainties and model; think of alternatives
+- Rmarkdown, knitr, Rstudio can provide a written summary that includes code
+- How to organise a data analysis project
+   - Data: raw and processed
+       - If raw data are available online, tag with URL and description—also place on git if possible
+   - Figures: exploratory and final—make serious doc-strings
+   - Code, inc (R)markdown/notes
+   - Text: README files and report
+       - include step-by-step instructions for analysis
+- Coding Standards in R
+   - Always use a text editor
+   - Indentation
+   - Width limit (e.g., 80 cols)
+   - limit length of individual functions-one basic activity ideally
+- Markdown: text-to-html conversion tool for writers
+   - `*italics*`
+   - `**bold**`
+   - `# Heading <h1>`
+   - `## Heading 2 <h2>`
+   - `### Heading 3 <h3>`
+   - `-` for `<ul>`
+   - `1.` for `<ol>`
+   - `[text for link](URL for link)`
+   - `[a link][1] and [another link][2]`
+       - `[1]: URL1`
+       - `[2]: URL2`
+   - Double space: line break
+- R Markdown: 
+   - like an iPython notebook, 
+       - but also can create presentations and shiny apps
+       - e.g., the Data Science slides, written in R Markdown and slidify
+   - `.Rmd` usual extension
+   - a core tool for literate statistical programming
+   - R markdown -> markdown with knitr
+   - markdown -> html with markdown R package
+       - R Studio manages above pipeline (Rmd->md->html)
+   - ` ```{r}``` ` for block of R code
+- Literate statistical programming with `knitr`
+   - collation of research motivation, data, methodology, and execution
+   - article = text + code
+   - literate program *weaved* into human-readable docs…
+   - or *tangled* to produce machine-readable docs
+   - `Sweave` uses LaTeX and R; knit more modern: export to HTML, PDF
+   - Built into Rstudio
+   - outside Rstudio: 
+       - `knit2html(“doc.Rmd”)`
+       - `browseURL(“doc.html”)`
+   - images (plots) become embedded into html, no file dependencies
+       - not efficient, but portable
+   - make tables with table
+       - `xt <- xtable(summary(fit))`
+   - Setting global options: 
+       - code chunk at top of Rmd doc: 
+       - ` ```{r setoptions, echo=FALSE} `
+       - ` opts_chunk  $set(echo=FALSE, results=“hide”) `
+       - ` ``` `
+       - Can override defaults in individual function calls
+       - results: ‘asis’, ‘hide’ (process or not)
+       - echo: T, F
+       - `fig.height`, `fig.width`
+   - Can cache longer computations with `cache=TRUE`
+       - But remember to re-cache! Dependencies not tracked. 
+- Present in levels of granularity
+   - title / abstract / body (results) / supplementaries (code)
+   - or over email: 
+       - summary in subject line / body (description/action/question) / links
+- The RR checklist
+   - Cleaning data: 
+       - don’t edit spreadsheets by hand, not RR
+   - Using analysis GUIs nice, but not RR
+   - DO teach a computer
+       - http://archive.ics.uci.edu/ml/
+   - DO use version control
+   - DO keep track of software environment
+       - in R: `sessionInfo()`
+   - Save data and code to analyse, rather than outputs. 
+       - document any intermediate files
+   - When running random numbers always set the seed
+- Evidence based data analysis
+   - Replication and reproducibility
+> For every field ‘X' there is a ‘Computational X’
