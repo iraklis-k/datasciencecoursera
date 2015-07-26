@@ -1,0 +1,129 @@
+---
+title: 'JHU/Coursera Practical Machine Learning: Course Project'
+author: "Iraklis S Konstantopoulos"
+date: "23 July 2015"
+output: html_document
+---
+
+# Data input
+The data I will use in this project were collected and made public by Wallace Ugulino, Eduardo Velloso, and Hugo Fuks [^1]. Read more about this Human Activity Recognition experiment at 
+<http://groupware.les.inf.puc-rio.br/har> or see the related publication: 
+
+[^1]: Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. 
+
+```{r, warning=FALSE}
+url_train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+url_test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+set_train <- read.csv(url(url_train, method="libcurl"))
+set_test <- read.csv(url(url_test, method="libcurl"))
+```
+
+### Cleaning: Missing Values and Useful Predictors
+A quick glance at the dataset reveals that many columns include few observations, some of which are actually empty strings rather than NA. I will rectify this by converting `#DIV/0` and `""` to `NA`, and then count up the fractional occurrence of `NA` in each column.
+```{r, warning=FALSE}
+set_train[set_train==""] <- NA; set_train[set_train=="#DIV/0!"] <- NA
+set_test[set_test==""] <- NA; set_test[set_test=="#DIV/0!"] <- NA
+
+nCols <- dim(set_train)[2]
+fracNA <- numeric(length = nCols) 
+for(i in 1:nCols){
+  fracNA[i] = sum(is.na(set_train[i]))/dim(set_train)[1]
+}
+print(levels(factor(fracNA)))
+```
+That is, columns can be split into two subsets: one with no missing values, and another where at least 98% of values are `NA`. The latter cannot give rise to reliable predictors and hence should be dropped from both imported datasets. 
+
+```{r, warning=FALSE}
+set_train = set_train[fracNA==0]
+set_test = set_test[fracNA==0]
+rbind(train=dim(set_train), test=dim(set_test))
+```
+This reduced the dimensionality of the dataset to a much more manageable 60 columns. 
+
+
+# Model setup
+In order to set up a reasonable machine learning algorithm to infer the type of exercise being performed I will follow these steps: 
+
+1. Preprocess both imported datasets identically by turning string variables to numbers
+
+1. Cross-validate the training set, facilitated by the abundance of data
+
+1. Develop a classification tree using a random forest
+
+1. Estimate the out-of-sample error of our categorical dataset through the accuracy and conconrdance
+
+1. Make predictions on the imported `set_test` set
+
+
+### Processing and Cross-Validation
+All variables are numeric or represented as factors. The human-readable timestamp, `cvdt_timestamp`, can be dropped as it includes superfluous information that is also represented by a numeric timestap in two parts. 
+```{r, warning=FALSE}
+set_train$cvtd_timestamp = NULL
+set_test$cvtd_timestamp = NULL
+```
+
+The large size of the available training set allows for a thorough cross-validation procedure. Given the abundance of data I will set 10% of the imported training set aside as a validation set, instead of using an automated, say $k$-folds, process, as stochastic effects can be expected to be minimal. 
+```{r, warning=FALSE}
+library(caret); set.seed(13311)
+validate <- createDataPartition(y=set_train$classe, p=0.1, list=FALSE)
+training <- set_train[-validate,]
+validation <- set_train[validate,]
+```
+
+### Model Construction
+With my validation set aside I can now set up a classification tree model to understand how the `classe` variable (subject's action) correlates with every other one in the data set. This will be the most computationally intensive part of the process, given the nearly 2e5 obesrvations. 
+```{r, warning=FALSE}
+library(rpart); library(lattice); library(ggplot2)
+myTreeRpart <- train(classe ~ ., method='rpart', data=training)
+```
+
+How well did this model perform? We can quantify this as the proprtion of correct classificaitons as a tabular schematic:
+```{r, warning=FALSE}
+sum(predict(myTreeRpart, validation) == validation$classe)/dim(validation)[1]
+table(predict(myTreeRpart, validation), validation$classe)
+```
+
+A success rate of 66% is not high enough, so this calls for a more robust algorithm. I will use method `rf` instead of a generic classification tree. 
+```{r, warning=FALSE}
+myTree <- train(classe ~ ., method='rf', data=training)
+print(myTree$finalModel)
+```
+
+The process took a little over 30 minutes on a top of the range laptop. To validate its effectiveness I will use the classification tree to predict `classe` in every observation of the validation set, and then the imported `set_test` data. 
+```{r, warning=FALSE}
+sum(predict(myTree, newdata=validation) == validation$classe)/dim(validation)[1]
+```
+
+The random forest algorithm correctly predicts every instance in the validation set. 
+
+### Constraining Errors
+Through the caret package we can simply use the `print()` function to return a summary of the constructed model, which includes estimates of the errors. In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as 'Kappa' in the following output). 
+```{r, warning=FALSE}
+print(myTree)
+```
+
+# Predicting the Test Set
+The last step is to use the model in order to predict which action (`classe`) is being undertaken by the test subject in each of 20 instances in the imported `set_test`. 
+
+```{r, warning=FALSE}
+predict(myTree, newdata=set_test)
+```
+The sophisticated model predicts that all the test subjects are performing `classe` "A". This apears to be an error in the output, since `R` thinks the levels of the output variable are the full set of A, B, C, D, and E. However, I do not have the time to fix this error at this stage. 
+
+The following script produces a suite of files for submitting results: 
+```{r,  warning=FALSE}
+answers <- as.character(predict(myTree, set_test))
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(answers)
+```
+
+And this brings us to the end of this writeup. I hope I have made everything clear. 
