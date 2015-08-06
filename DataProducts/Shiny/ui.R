@@ -8,7 +8,7 @@
 
 library(shiny)
 # Read the data frame to get the list of meters
-nm <- names(read.csv('MultiMeter.csv'))
+nm <- names(read.csv('kWh.csv'))
 
 # First step to unique names: kWh column names
 meter_names = nm[grep('kWh', nm)]  

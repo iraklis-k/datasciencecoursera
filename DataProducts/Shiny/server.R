@@ -9,9 +9,8 @@
 library(shiny, gridExtra)
 
 # Input consumption data
-#dat <- read.csv('PowerFactor.csv')
-dat <- read.csv('MultiMeter.csv')
-
+kWh <- read.csv('kWh.csv')
+kVAh <- read.csv('kVAh.csv')
 
 shinyServer(function(input, output) {
 
