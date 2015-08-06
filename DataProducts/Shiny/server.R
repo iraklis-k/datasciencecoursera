@@ -12,22 +12,32 @@ library(shiny, gridExtra)
 kWh <- read.csv('kWh.csv')
 kVAh <- read.csv('kVAh.csv')
 
+# Remove the leading 'X' added by read.csv
+#names(kWh)[2:5] <- substring(names(kWh)[2:5], 2)
+#names(kVAh)[2:5] <- substring(names(kVAh)[2:5], 2)
+
 shinyServer(function(input, output) {
 
     # Plot 1: Consumption Time Series
     output$TimeSeries <- renderPlot({
 
         # Restrict the data frame to the date selected
-        plotFrame <- dat[as.Date(dat$Date) == as.Date(input$Date),]
-
+        plotkWh <- kWh[as.Date(kWh$Date) == as.Date(input$Date),]
+        plotkVAh <- kVAh[as.Date(kVAh$Date) == as.Date(input$Date),]
+        
         # Get the index of the column to plot
-        myCol <- grep(input$Meter, names(plotFrame))[1]
-
+        myCol <- grep(input$Meter, names(plotkWh))[1]
+        
         # ggplot the data: kWh and PF
-        qplot(x=as.list(plotFrame[16])[[1]], 
-                     y=as.list(plotFrame[myCol])[[1]],
-                     xlab='Time [hh:mm:ss]', ylab='Consumption [kWh]', 
-                     main = paste('Meter ', input$Meter), asp=0.5)
+        qplot(x=plotkWh$Time, y=as.list(plotkWh[myCol])[[1]])
+        
+        ## NOW ADD kVAh with same myCol
+        
+        
+                #qplot(x=as.list(plotFrame[16])[[1]], 
+        #             y=as.list(plotFrame[myCol])[[1]],
+        #             xlab='Time [hh:mm:ss]', ylab='Consumption [kWh]', 
+        #             main = paste('Meter ', input$Meter), asp=0.5)
 
         #ggplot() + 
         #  geom_dotplot(aes(y=as.list(plotFrame[myCol])[[1]]))

@@ -8,15 +8,10 @@
 
 library(shiny)
 # Read the data frame to get the list of meters
-nm <- names(read.csv('kWh.csv'))
+meter_names <- names(read.csv('kWh.csv'))[2:5]
 
-# First step to unique names: kWh column names
-meter_names = nm[grep('kWh', nm)]  
-
-# Split on kWh and keep only the meter number
-for(i in 1:4){ 
-  meter_names[i] = strsplit(meter_names, '_')[[i]][2]
-  }
+# Remove the leading 'X' added by read.csv
+#meter_names <- substring(meter_names, 2)
 
 shinyUI(pageWithSidebar(
   headerPanel("Consumed vs Delivered Energy"), 
