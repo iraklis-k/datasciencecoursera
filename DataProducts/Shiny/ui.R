@@ -16,14 +16,20 @@ meter_names <- names(read.csv('kWh.csv'))[2:5]
 shinyUI(pageWithSidebar(
   headerPanel("Consumed vs Delivered Energy"), 
   sidebarPanel(
-
-    dateInput("Date", "Date:", 
-              value='2015-01-01', format='yyyy-mm-dd'),
-    
-    selectInput("Meter", "Meter:", choices=meter_names)
+    # Text
+    h3("Input panel"),
+    p("Please select a date and a sub-meter below."),
+    # Calendar pop-up
+    dateInput("Date", "Date:", value='2015-01-01', format='yyyy-mm-dd'),
+    # Meter selector drop-down
+    selectInput("Meter", "Meter ID:", choices=meter_names),
+    # Explanatory text
+    helpText("This dashboard displays simulated electricity consumption (dots, kWh) ",
+             "and load (stars, kVAh) for a site with four separate sub-meters. ", 
+             "The Power Factor, being the ratio of consumption-to-load is plotted ", 
+             "as a solid line in the bottom panel. ")
   ),
   mainPanel(
-    plotOutput("TimeSeries"),
-    plotOutput("Geomapper")
+    plotOutput("TimeSeries")
   )
 ))
