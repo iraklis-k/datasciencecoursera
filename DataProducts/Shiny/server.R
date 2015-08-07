@@ -28,24 +28,19 @@ shinyServer(function(input, output) {
         # Get the index of the column to plot
         myCol <- grep(input$Meter, names(plotkWh))[1]
         
-        # ggplot the data: kWh and PF
-        qplot(x=plotkWh$Time, y=as.list(plotkWh[myCol])[[1]])
+        # And further prune the data frame to only include plot data
+        plotFrame <- data.frame(plotkWh[myCol], plotkVAh[myCol], plotkWh[6])
+        names(plotFrame) <- c("kWh", "kVAh", "Time")
         
-        ## NOW ADD kVAh with same myCol
-        
-        
-                #qplot(x=as.list(plotFrame[16])[[1]], 
-        #             y=as.list(plotFrame[myCol])[[1]],
-        #             xlab='Time [hh:mm:ss]', ylab='Consumption [kWh]', 
-        #             main = paste('Meter ', input$Meter), asp=0.5)
-
-        #ggplot() + 
-        #  geom_dotplot(aes(y=as.list(plotFrame[myCol])[[1]]))
-        
+        # ggplot the data: kWh and kVAh (scatter), and PF (line)
+        #qplot(Time, kWh, data=plotFrame)
+        ggplot(plotFrame, aes(Time)) +
+          geom_point(aes(y=kWh)) +
+          geom_point(aes(y=kVAh)) #+
+          #geom_line(aes(y=kWh/kVAh))        
+                
         # Also need to set up the four summary boxes
-        
-        # I NEED TO REORGANISE THE DF. NO GOOD! 
-        
+
     })
 })
 
