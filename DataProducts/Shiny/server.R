@@ -38,7 +38,8 @@ shinyServer(function(input, output) {
 
         # Decimal places in y tick label
         fmt <- function(){
-          function(x) format(x,nsmall = 2,scientific = FALSE)
+          #function(x) format(x,nsmall = 2,scientific = FALSE)
+          function(x) round(x, digits=2)
         }
                 
         # Plot kWh and kVAh (scatter), and PF (line)
@@ -54,13 +55,13 @@ shinyServer(function(input, output) {
         g2 <- ggplot(plotFrame, aes(Time)) + 
           geom_line(aes(y=(kWh/kVAh)), size=1, colour='#9b57a2') + 
           #coord_fixed(ratio=350000) + 
-          scale_y_continuous(labels=fmt()) + 
           ylab("Power Factor") + 
           #ylim(c(0.9*min(kWh/kVAh), 1.)) + 
           theme(axis.text.x=element_text(angle=30)) + 
           theme(plot.margin = unit(c(0., 0., 0., 0.), "cm")) +
-          scale_x_datetime(breaks = "2 hour", labels=date_format("%H:%M"))
-        
+          scale_x_datetime(breaks = "2 hour", labels=date_format("%H:%M")) + 
+          scale_y_continuous(labels=fmt())
+          
         grid.arrange(g1, g2)#, 
                      #widths = unit(c(20,20), "cm"),
                      #heights = unit(rep(10, 2), "cm"))
