@@ -30,7 +30,7 @@ shinyUI(fluidPage(
       ),
     mainPanel(
       plotOutput("TimeSeries"),
-      br(),
+      #br(),
       h3('Usage Note'),
       p("This dashboard displays electricity consumption (kWh, dots) and load (kVAh, ",
           "stars) for a site with four separate sub-meters. The cadence is 15 minutes. ", 
@@ -42,7 +42,7 @@ shinyUI(fluidPage(
       p("Using this interface a building manager or site engineer will be able to ", 
         "scout for performance and energy efficiency, and manage energy and ", 
         "facility costs. "),
-      p("All data showin in this demonstration are simulated. ")
+      p("All data shown in this demonstration are simulated. ")
       
     )
     )

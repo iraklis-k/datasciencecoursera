@@ -10,6 +10,7 @@ library(shiny)
 library(ggplot2)
 library(gridExtra)
 library(scales)
+library(reshape2)
 
 # Input consumption data
 kWh <- read.csv('kWh.csv')
@@ -37,6 +38,10 @@ shinyServer(function(input, output) {
                              format="%Y-%m-%d %H:%M:%S"))
         names(plotFrame) <- c("kWh", "kVAh", "Time")
 
+        plotFrame <- melt(plotFrame, measure.vars = c('kWh', 'kVAh'))
+        plotFrame$PF <- plotFrame$value[plotFrame$variable=='kWh'] / 
+          plotFrame$value[plotFrame$variable=='kVAh']
+        
         # Decimal places in y tick label
         fmt <- function(){
           #function(x) format(x,nsmall = 2,scientific = FALSE)
@@ -44,39 +49,34 @@ shinyServer(function(input, output) {
         }
         
         # Plot kWh and kVAh (scatter), and PF (line)
-        g1 <- ggplot(plotFrame, aes(Time)) +
-          #coord_fixed(ratio=1000) + 
-          #geom_point(aes(y=kWh, colour="kWh")) +
-          #geom_point(aes(y=kVAh, colour="kVAh")) +
-          geom_point(size=3, colour='blue', alpha=0.5, aes(y=kWh, colour="kWh")) +
-          geom_point(size=10, colour='grey30', shape='*', aes(y=kVAh, colour="kVAh")) +
-          ylab("Consumption [kWh, kVAh]") + 
+        g1 <- ggplot(plotFrame) + 
+          geom_point(aes(x=Time, y=value, colour=variable, 
+                         shape=variable, size=variable)) + 
+          scale_size_manual("", values=c('kWh' = 3, "kVAh" = 7)) + 
+          scale_shape_manual("", values=c("kWh" = 'o', "kVAh" = "*")) + 
+          scale_colour_manual("", values=c("kWh" = "blue", "kVAh" = "grey30")) +
+          labs(x="", y="Consumption [kWh, kVAh]") +
           theme(axis.text.x = element_blank()) + 
-          theme(axis.title.x = element_blank()) + 
-          theme(plot.margin = unit(c(0., 0., 0., 0.34), "cm")) +
           # --- NOTE: should also cater for three digit kWh values
-          #scale_colour_manual("", breaks = c("kWh", "kVAh"),
-          #                        values = c("blue", "darkgrey")) +
-          #scale_shape_manual("", breaks = c("kWh", "kVAh"),
-          #                       values = c(0, "*")) +
-          #scale_size_manual("", breaks = c("kWh", "kVAh"),
-          #                      values = c(50, 500)) +
-          scale_x_datetime(breaks = "2 hour")
-          #theme(legend.position=c(.5, .5))
-        
+          theme(plot.margin = unit(c(0., 0., 0., 0.34), "cm")) +
+          scale_x_datetime(breaks = "2 hour") + 
+          theme(legend.justification=c(0,0), legend.position=c(0,0.55)) + 
+          theme(legend.background = element_rect(fill="transparent"))
+                
+#         g1 <- ggplot(plotFrame, aes(Time)) +
+#           geom_point(size=3, colour='blue', alpha=0.5, aes(y=kWh, colour="kWh")) +
+#           geom_point(size=10, colour='grey30', shape='*', aes(y=kVAh, colour="kVAh")) +
+# 
         g2 <- ggplot(plotFrame, aes(Time)) + 
-          geom_line(aes(y=(kWh/kVAh)), size=1, colour='#9b57a2') + 
-          #coord_fixed(ratio=350000) + 
-          ylab("Power Factor") + 
+          geom_line(aes(y=(PF)), size=1, colour='#9b57a2') + 
+          labs(x=" ", y="Power Factor") + 
           #ylim(c(0.9*min(kWh/kVAh), 1.)) + 
           theme(axis.text.x=element_text(angle=30, hjust=1)) + 
           theme(plot.margin = unit(c(0., 0., 0., 0.), "cm")) +
           scale_x_datetime(breaks = "2 hour", labels=date_format("%H:%M")) + 
           scale_y_continuous(labels=fmt())
           
-        grid.arrange(g1, g2)#, 
-                     #widths = unit(c(20,20), "cm"),
-                     #heights = unit(rep(10, 2), "cm"))
+        grid.arrange(g1, g2)
         # Also need to set up the four summary boxes
 
   })
