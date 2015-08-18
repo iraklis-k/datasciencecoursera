@@ -1,7 +1,7 @@
 ---
 title: 'JHU/Coursera Practical Machine Learning: Course Project'
 author: "Iraklis S Konstantopoulos"
-date: "23 July 2015"
+date: "18 August 2015"
 output: html_document
 ---
 
@@ -69,7 +69,7 @@ set_test$raw_timestamp_part_2 = NULL
 ```{r}
 rbind(train=dim(set_train), test=dim(set_test))
 ```
-This exercise reduced the dimensionality of the dataset to a much more manageable 56 columns. 
+This exercise reduced the dimensionality of the dataset to a much more manageable 56 columns. This is particularly important since this is not a linear problem. Instead I will be classifying with trees, a process that is prone to overfitting when a plethora of predictors are available. 
 
 
 # Model setup
@@ -107,35 +107,41 @@ sum(predict(myTreeRpart, validation) == validation$classe)/dim(validation)[1]
 table(predict(myTreeRpart, validation), validation$classe)
 ```
 
-A success rate of 66% is not high enough, so this calls for a more robust algorithm. I will use method `rf` instead of a generic classification tree. 
-```{r, warning=FALSE}
-myTree <- train(classe ~ ., method='rf', data=training)
+A success rate of 57% is not high enough, so this calls for a more robust algorithm. I will use a random forest instead of a generic classification tree. 
+```{r, warning=FALSE, cache=TRUE}
+library(randomForest)
+myTree <- randomForest(classe ~ ., method='rf', data=training)
 print(myTree$finalModel)
 ```
 
-The process took a little over 30 minutes on a top of the range laptop. To validate its effectiveness I will use the classification tree to predict `classe` in every observation of the validation set, and then the imported `set_test` data. 
+The success rate on the training set is very high indeed. To validate the true effectiveness of this algorithm I will predict `classe` in every observation of the validation set (to test for overfitting), and then the imported `set_test` data. 
 ```{r, warning=FALSE}
 sum(predict(myTree, newdata=validation) == validation$classe)/dim(validation)[1]
 ```
 
-The random forest algorithm correctly predicts every instance in the validation set. 
+The success rate in classifying the validation set is nearly 100%. 
 
 ### Constraining Errors
-Through the caret package we can simply use the `print()` function to return a summary of the constructed model, which includes estimates of the errors. In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as 'Kappa' in the following output). 
-```{r, warning=FALSE}
+Through the `caret` package we can simply use the `print()` function to return a summary of the constructed model, which includes estimates of the errors. In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as 'Kappa' in the following output). 
+```{r, warning=FALSE, echo=FALSE}
 print(myTree)
+```
+
+A more detailed and precise error analyis is offered through a confusion matrix: 
+```{r}
+confusionMatrix(validation$classe,predict(myTree,validation))
 ```
 
 # Predicting the Test Set
 The last step is to use the model in order to predict which action (`classe`) is being undertaken by the test subject in each of 20 instances in the imported `set_test`. 
-
 ```{r, warning=FALSE}
 predict(myTree, newdata=set_test)
 ```
-The sophisticated model predicts that all the test subjects are performing `classe` "A". This apears to be an error in the output, since `R` thinks the levels of the output variable are the full set of A, B, C, D, and E. However, I do not have the time to fix this error at this stage. 
 
-The following script produces a suite of files for submitting results: 
-```{r,  warning=FALSE}
+All five classes are represented here, which lends confidence to the validity of the model. 
+
+The script provided by the instructors produces a suite of files for submitting results. I will not echo this code while I output results files (see Rmd file). 
+```{r,  warning=FALSE, echo=FALSE}
 answers <- as.character(predict(myTree, set_test))
 
 pml_write_files = function(x){
@@ -148,5 +154,3 @@ pml_write_files = function(x){
 
 pml_write_files(answers)
 ```
-
-And this brings us to the end of this writeup. I hope I have made everything clear. 
