@@ -69,7 +69,7 @@ set_test$raw_timestamp_part_2 = NULL
 ```{r}
 rbind(train=dim(set_train), test=dim(set_test))
 ```
-This exercise reduced the dimensionality of the dataset to a much more manageable 56 columns. This is particularly important since this is not a linear problem. Instead I will be classifying with trees, a process that is prone to overfitting when a plethora of predictors are available. 
+This exercise reduced the dimensionality of the dataset to a much more manageable 55 columns. This is particularly important since this is not a linear problem. Instead I will be classifying with trees, a process that is prone to overfitting when a plethora of predictors are available. 
 
 
 # Model setup
@@ -110,35 +110,31 @@ table(predict(myTreeRpart, validation), validation$classe)
 A success rate of 57% is not high enough, so this calls for a more robust algorithm. I will use a random forest instead of a generic classification tree. 
 ```{r, warning=FALSE, cache=TRUE}
 library(randomForest)
-myTree <- randomForest(classe ~ ., method='rf', data=training)
-print(myTree$finalModel)
+myTree <- randomForest(classe ~ ., data=training)
 ```
 
-The success rate on the training set is very high indeed. To validate the true effectiveness of this algorithm I will predict `classe` in every observation of the validation set (to test for overfitting), and then the imported `set_test` data. 
+To validate the effectiveness of this algorithm I will predict `classe` in every observation of the validation set (to test for overfitting), and then the imported `set_test` data. 
 ```{r, warning=FALSE}
-sum(predict(myTree, newdata=validation) == validation$classe)/dim(validation)[1]
+sum(predict(myTree, newdata=validation) == validation$classe) / dim(validation)[1]
 ```
 
 The success rate in classifying the validation set is nearly 100%. 
 
 ### Constraining Errors
-Through the `caret` package we can simply use the `print()` function to return a summary of the constructed model, which includes estimates of the errors. In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as 'Kappa' in the following output). 
-```{r, warning=FALSE, echo=FALSE}
-print(myTree)
-```
-
-A more detailed and precise error analyis is offered through a confusion matrix: 
+In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as 'Kappa' in the following output), which we can obtain through a confusion matrix: 
 ```{r}
 confusionMatrix(validation$classe,predict(myTree,validation))
 ```
 
+The formal calculation of Accuracy and Concordance confirm the precision with which the algorithm classifies the `classe` variable. 
+
 # Predicting the Test Set
 The last step is to use the model in order to predict which action (`classe`) is being undertaken by the test subject in each of 20 instances in the imported `set_test`. 
-```{r, warning=FALSE}
+```{r, warning=FALSE, eval=FALSE}
 predict(myTree, newdata=set_test)
 ```
 
-All five classes are represented here, which lends confidence to the validity of the model. 
+I have not output the results here but suffice it to report that all five classes are represented here, which lends confidence to the validity of the model. 
 
 The script provided by the instructors produces a suite of files for submitting results. I will not echo this code while I output results files (see Rmd file). 
 ```{r,  warning=FALSE, echo=FALSE}

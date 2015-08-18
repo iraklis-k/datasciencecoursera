@@ -113,7 +113,7 @@ print(names(set_train[nzv$nzv==TRUE]))</code></pre>
 <pre><code>##        [,1] [,2]
 ## train 19622   55
 ## test     20   55</code></pre>
-<p>This exercise reduced the dimensionality of the dataset to a much more manageable 56 columns. This is particularly important since this is not a linear problem. Instead I will be classifying with trees, a process that is prone to overfitting when a plethora of predictors are available.</p>
+<p>This exercise reduced the dimensionality of the dataset to a much more manageable 55 columns. This is particularly important since this is not a linear problem. Instead I will be classifying with trees, a process that is prone to overfitting when a plethora of predictors are available.</p>
 </div>
 </div>
 <div id="model-setup" class="section level1">
@@ -151,36 +151,16 @@ myTreeRpart &lt;- train(classe ~ ., method='rpart', data=training)</code></pre>
 ##   D   0   0   0   0   0
 ##   E   2   0   0  23 216</code></pre>
 <p>A success rate of 57% is not high enough, so this calls for a more robust algorithm. I will use a random forest instead of a generic classification tree.</p>
-<pre class="r"><code>library(randomForest)</code></pre>
-<pre><code>## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>myTree &lt;- randomForest(classe ~ ., method='rf', data=training)
-print(myTree$finalModel)</code></pre>
-<pre><code>## NULL</code></pre>
-<p>The success rate on the training set is very high indeed. To validate the true effectiveness of this algorithm I will predict <code>classe</code> in every observation of the validation set (to test for overfitting), and then the imported <code>set_test</code> data.</p>
-<pre class="r"><code>sum(predict(myTree, newdata=validation) == validation$classe)/dim(validation)[1]</code></pre>
+<pre class="r"><code>library(randomForest)
+myTree &lt;- randomForest(classe ~ ., data=training)</code></pre>
+<p>To validate the effectiveness of this algorithm I will predict <code>classe</code> in every observation of the validation set (to test for overfitting), and then the imported <code>set_test</code> data.</p>
+<pre class="r"><code>sum(predict(myTree, newdata=validation) == validation$classe) / dim(validation)[1]</code></pre>
 <pre><code>## [1] 0.9964358</code></pre>
 <p>The success rate in classifying the validation set is nearly 100%.</p>
 </div>
 <div id="constraining-errors" class="section level3">
 <h3>Constraining Errors</h3>
-<p>Through the <code>caret</code> package we can simply use the <code>print()</code> function to return a summary of the constructed model, which includes estimates of the errors. In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as ‘Kappa’ in the following output).</p>
-<pre><code>## 
-## Call:
-##  randomForest(formula = classe ~ ., data = training, method = &quot;rf&quot;) 
-##                Type of random forest: classification
-##                      Number of trees: 500
-## No. of variables tried at each split: 7
-## 
-##         OOB estimate of  error rate: 0.2%
-## Confusion matrix:
-##      A    B    C    D    E  class.error
-## A 5021    0    0    0    1 0.0001991239
-## B    2 3413    2    0    0 0.0011706175
-## C    0    7 3070    2    0 0.0029230270
-## D    0    0   14 2878    2 0.0055286800
-## E    0    0    0    5 3241 0.0015403574</code></pre>
-<p>A more detailed and precise error analyis is offered through a confusion matrix:</p>
+<p>In this case we have a categorical variable, rather than a continuous one, so the appropriate measures of error are the Accuracy and Conconrdance (denoted as ‘Kappa’ in the following output), which we can obtain through a confusion matrix:</p>
 <pre class="r"><code>confusionMatrix(validation$classe,predict(myTree,validation))</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
@@ -213,16 +193,14 @@ print(myTree$finalModel)</code></pre>
 ## Detection Rate         0.2841   0.1930   0.1741   0.1629   0.1823
 ## Detection Prevalence   0.2841   0.1935   0.1746   0.1640   0.1838
 ## Balanced Accuracy      0.9991   0.9984   0.9968   0.9947   0.9991</code></pre>
+<p>The formal calculation of Accuracy and Concordance confirm the precision with which the algorithm classifies the <code>classe</code> variable.</p>
 </div>
 </div>
 <div id="predicting-the-test-set" class="section level1">
 <h1>Predicting the Test Set</h1>
 <p>The last step is to use the model in order to predict which action (<code>classe</code>) is being undertaken by the test subject in each of 20 instances in the imported <code>set_test</code>.</p>
 <pre class="r"><code>predict(myTree, newdata=set_test)</code></pre>
-<pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
-##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
-## Levels: A B C D E</code></pre>
-<p>All five classes are represented here, which lends confidence to the validity of the model.</p>
+<p>I have not output the results here but suffice it to report that all five classes are represented here, which lends confidence to the validity of the model.</p>
 <p>The script provided by the instructors produces a suite of files for submitting results. I will not echo this code while I output results files (see Rmd file).</p>
 </div>
 <div class="footnotes">
