@@ -12,6 +12,8 @@ The data I will use in this project were collected and made public by Wallace Ug
 [^1]: Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. 
 
 ```{r, warning=FALSE}
+doMC::registerDoMC(cores=4) # Enable multi-core processing
+
 url_train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 url_test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 
@@ -35,11 +37,39 @@ print(levels(factor(fracNA)))
 That is, columns can be split into two subsets: one with no missing values, and another where at least 98% of values are `NA`. The latter cannot give rise to reliable predictors and hence should be dropped from both imported datasets. 
 
 ```{r, warning=FALSE}
-set_train = set_train[fracNA==0]
-set_test = set_test[fracNA==0]
+set_train <- set_train[fracNA==0]
+set_test <- set_test[fracNA==0]
+```
+
+### Superfluous Covariates
+A final step in preprocessing the dataset is to examine the variability of each parameter in the data frame and exclude those that do not contribute to the variabililty. Through the `nzv` function we can identify near zero variance predictors and exclude them from the training and test sets. 
+
+```{r}
+library(lattice); library(ggplot2); library(caret)
+nzv <- nearZeroVar(set_train,saveMetrics=TRUE)
+# Drop all predictors where nzv==TRUE
+print(names(set_train[nzv$nzv==TRUE]))
+```
+
+The above indicates that the `new_window` predictor does not vary and should be dropped. In addition, the timestamp does not record a useful variable (easy to assess by plotting it against the classe outcome variable), and the `X` variable is just an index that might confuse the model. 
+```{r, echo=FALSE}
+set_train$new_window = NULL
+set_train$X = NULL
+set_train$cvtd_timestamp = NULL
+set_train$raw_timestamp_part_1 = NULL
+set_train$raw_timestamp_part_2 = NULL
+
+set_test$new_window = NULL
+set_test$X = NULL
+set_test$cvtd_timestamp = NULL
+set_test$raw_timestamp_part_1 = NULL
+set_test$raw_timestamp_part_2 = NULL
+```
+
+```{r}
 rbind(train=dim(set_train), test=dim(set_test))
 ```
-This reduced the dimensionality of the dataset to a much more manageable 60 columns. 
+This exercise reduced the dimensionality of the dataset to a much more manageable 56 columns. 
 
 
 # Model setup
@@ -55,17 +85,10 @@ In order to set up a reasonable machine learning algorithm to infer the type of 
 
 1. Make predictions on the imported `set_test` set
 
-
 ### Processing and Cross-Validation
-All variables are numeric or represented as factors. The human-readable timestamp, `cvdt_timestamp`, can be dropped as it includes superfluous information that is also represented by a numeric timestap in two parts. 
+All variables are numeric or represented as factors. The large size of the available training set allows for a thorough cross-validation procedure. Given the abundance of data I will set 10% of the imported training set aside as a validation set, instead of using an automated, say $k$-folds, process, as stochastic effects can be expected to be minimal. 
 ```{r, warning=FALSE}
-set_train$cvtd_timestamp = NULL
-set_test$cvtd_timestamp = NULL
-```
-
-The large size of the available training set allows for a thorough cross-validation procedure. Given the abundance of data I will set 10% of the imported training set aside as a validation set, instead of using an automated, say $k$-folds, process, as stochastic effects can be expected to be minimal. 
-```{r, warning=FALSE}
-library(caret); set.seed(13311)
+set.seed(13311)
 validate <- createDataPartition(y=set_train$classe, p=0.1, list=FALSE)
 training <- set_train[-validate,]
 validation <- set_train[validate,]
@@ -74,11 +97,11 @@ validation <- set_train[validate,]
 ### Model Construction
 With my validation set aside I can now set up a classification tree model to understand how the `classe` variable (subject's action) correlates with every other one in the data set. This will be the most computationally intensive part of the process, given the nearly 2e5 obesrvations. 
 ```{r, warning=FALSE}
-library(rpart); library(lattice); library(ggplot2)
+library(rpart)
 myTreeRpart <- train(classe ~ ., method='rpart', data=training)
 ```
 
-How well did this model perform? We can quantify this as the proprtion of correct classificaitons as a tabular schematic:
+How well did this model perform? We can quantify this as the proportion of correct classificaitons as a tabular schematic:
 ```{r, warning=FALSE}
 sum(predict(myTreeRpart, validation) == validation$classe)/dim(validation)[1]
 table(predict(myTreeRpart, validation), validation$classe)
